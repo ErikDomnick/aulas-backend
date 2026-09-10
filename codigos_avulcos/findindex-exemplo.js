@@ -11,10 +11,10 @@ const usuarios = [
     { nome: "Bruno", idade: 18 }
 ];
 
-const maiorDeTrinta = usuarios.find((usuario) => usuario.idade > 30);
+const posicao_do_primeiro = usuarios.findIndex((usuario) => usuario.idade > 30);
+console.log(posicao_do_primeiro);
 
-if(maiorDeTrinta !== undefined) {
-    console.log(maiorDeTrinta);
-} else {
-    console.log("nao encontrei nenhum usuario");
-}
+/*const user = usuarios[posicao_do_primeiro]
+if(user) {
+
+}*/
