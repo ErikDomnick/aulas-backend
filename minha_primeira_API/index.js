@@ -37,7 +37,7 @@ app.get("/livros/:id", (req, res) => {
     });
 
     if(livro) {
-        res.status(404).send;
+        res.status(404).send();
     }
 
     res.json(livro());
@@ -65,7 +65,25 @@ app.post("/livros", (req, res) => {
     livros.push(novoLivro);
 
     res.status(201).json(livros);
-})
+});
+
+app.delete("/livros/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+
+    if(isNaN(id)) {
+        res.status(400).json({ mensagem: "identificador deve ser um numero" });
+    }
+
+    let indexLivro = livros.findIndex((livro) => {
+        return livro.idLivro === id;
+    });
+
+    if(indexLivro === -1) {
+        res.status(404).send();
+    }
+
+    livros.splice(indexLivro, 1);
+});
 
 app.listen(3000); //terceiro pilar: porta a ser ouvida
 
