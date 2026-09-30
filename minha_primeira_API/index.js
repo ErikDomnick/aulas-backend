@@ -1,5 +1,11 @@
 import express from 'express';
 
+const validaParametro = (param) => {
+    const numero = parseInt(param);
+
+    return isNaN(numero);
+};
+
 const app = express(); //primeiro pilar: instancia do express
 app.use(express.json());
 
@@ -10,7 +16,7 @@ app.use(express.json());
  * blDisponivel -> boolean = fg
 */
 
-let ultimoId = 1;
+let ultimoId = 2;
 let livros = [
     {idLivro: 1, stTitulo: "as conicas de negoney", stAutor: "negoney", blDisponivel: true},
     {idLivro: 2, stTitulo: "as conicas de negoney", stAutor: "negoney", blDisponivel: true}
@@ -25,18 +31,20 @@ app.get("/livros", (req, res) => {
 });
 
 app.get("/livros/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-    if(isNaN(id)) {
+    const id = req.params.id;
+
+    if(isNaN(validaParametro(id))) {
+        //se nao for um numero
         return res
-        .status(400)
+        .status(400) //requisicao mal formada
         .json({mensagem: "o parametro precisa ser um numero valido"});
     }
 
     let livro = livros.find((livro) => {
-        return livro.idLivro === id;
+        return livro.idLivro === parseInt(id);
     });
 
-    if(livro) {
+    if(livro === undefined) {
         res.status(404).send();
     }
 
@@ -44,7 +52,8 @@ app.get("/livros/:id", (req, res) => {
 });
 
 app.post("/livros", (req, res) => {
-    let idNovo = ultimoId++;
+    let idNovo = ultimoId + 1;
+    ultimoId++;
 
     let tituloEnviado = req.body.titulo
     let autorEnviado = req.body.autor
@@ -57,20 +66,20 @@ app.post("/livros", (req, res) => {
 
     let novoLivro = {
         idLivro: idNovo,
-        blDispobivel: true,
+        blDisponivel: true,
         stTitutlo: tituloEnviado,
         stAutor: autorEnviado
     };
 
-    livros.push(novoLivro);
+    livros.push(novoLivro); //eu adicionei um novo livro ao "banco de dados"
 
     res.status(201).json(livros);
 });
 
 app.delete("/livros/:id", (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
 
-    if(isNaN(id)) {
+    if(isNaN(validaParametro(id))) {
         res.status(400).json({ mensagem: "identificador deve ser um numero" });
     }
 
@@ -83,7 +92,121 @@ app.delete("/livros/:id", (req, res) => {
     }
 
     livros.splice(indexLivro, 1);
+
+    res.sendStatus(204);
 });
+
+app.patch('/livros/:id', (req, res) => {
+    const id = req.params.id;
+    const novoTitulo = req.body.stTitulo;
+    const novoAutor = req.body.stAutor;
+    
+    if(isNaN(validaParametro(id))) {
+        return res
+            .status(400)
+            .json({ mensagem: "identificador precisa ser um numero valido" });
+    }
+
+    let indexLivro = livros.findIndex((livro) => {
+        return livro.idLivro === parseInt(id);
+    });
+
+    if(indexLivro === -1) {
+        return res.sendStatus(404);
+    }
+
+    let livroAtt = livros[indexLivro];
+
+    if(novoAutor !== undefined) {
+        livroAtt.stAutor = novoAutor;
+    }
+    if(novoTitulo !== undefined) {
+        livroAtt.stTitulo = novoTitulo;
+    }
+
+    res.sendStatus(204);
+});
+
+// ATIVIDADE DO MAL
+
+//PATCH EMPRESTAR
+app.patch("/livros/emp/:id", (req, res) => {
+    const id = req.params.id;
+    const novoTitulo = req.body.stTitulo;
+    const novoAutor = req.body.stAutor;
+    const novoDisp = req.body.blDisponivel;
+    
+    if(isNaN(validaParametro(id))) {
+        return res
+            .status(400)
+            .json({ mensagem: "identificador precisa ser um numero valido" });
+    }
+
+    let indexLivro = livros.findIndex((livro) => {
+        return livro.idLivro === parseInt(id);
+    });
+
+    if(indexLivro === -1) {
+        return res.sendStatus(404);
+    }
+
+    let livroAtt = livros[indexLivro];
+
+    if(livroAtt.blDisponivel) {
+        livroAtt.blDisponivel = false
+    } else {
+        res.status(409)
+           .json({ mensagem: "livro indisponivel" });
+    }
+
+    if(novoDisp !== undefined) {
+        livroAtt.blDisponivel = novoDisp;
+    }
+
+    console.log(livroAtt);
+
+    res.status(204);
+});
+
+//PATCH DEVOLVER
+app.patch("/livros/dev/:id", (req, res) => {
+    const id = req.params.id;
+    const novoTitulo = req.body.stTitulo;
+    const novoAutor = req.body.stAutor;
+    const novoDisp = req.body.blDisponivel;
+    
+    if(isNaN(validaParametro(id))) {
+        return res
+            .status(400)
+            .json({ mensagem: "identificador precisa ser um numero valido" });
+    }
+
+    let indexLivro = livros.findIndex((livro) => {
+        return livro.idLivro === parseInt(id);
+    });
+
+    if(indexLivro === -1) {
+        return res.sendStatus(404);
+    }
+
+    let livroAtt = livros[indexLivro];
+
+    if(!(livroAtt.blDisponivel)) {
+        livroAtt.blDisponivel = true
+    } else {
+        res.status(409)
+           .json({ mensagem: "voce nao tem o livro ou esta tentando devolver um livro ja devolvido, isso nao existe" });
+    }
+
+    if(novoDisp !== undefined) {
+        livroAtt.blDisponivel = novoDisp;
+    }
+
+    console.log(livroAtt);
+
+    res.status(204);
+});
+
 
 app.listen(3000); //terceiro pilar: porta a ser ouvida
 
