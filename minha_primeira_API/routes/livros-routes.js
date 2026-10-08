@@ -1,25 +1,82 @@
 import Router from "express";
+import { findAll, findOne, criarLivro, deletarLivro, editarLivro} from "../controller/livros-controller.js";
 
 const router = Router();
 
 router.get("/", (req, res) => {
-    res.json(livros);
+    /*const todosOsLivros = findAll(); //controller nao conhece o res
+    console.log(todosOsLivros);*/
+
+    //findAll(res); // triangulo, controller conhece o res
+
+    const todosOsLivros = findAll();
+    res.json(todosOsLivros);
 });
 
 router.get("/:id", (req, res) => {
-    console.log("get USERS");
+    const idLivro = parseInt(req.params.id);
+
+    if(isNaN(idLivro)) {
+        return res
+            .status(400) //requisicao mal formada
+            .json({mensagem: "o parametro precisa ser um numero valido"});
+    }
+
+    let livro = findOne(idLivro);
+
+    if(livro) {
+        res.status(404).send();
+    }
+
+    res.json(livro);
 });
 
 router.post("/", (req, res) => {
-    console.log("post USERS");
+    let tituloEnviado = req.body.stTitulo;
+    let autorEnviado = req.body.atAutor;
+
+    if (!autor_enviado || !titulo_enviado) {
+        return res
+            .status(400)
+            .json({ mensagem: "dados faltando, verifique autor e titulo" });
+    }
+
+    let livroCriado = criarLivro(tituloEnviado, autorEnviado);
+    if(!livroCriado) {
+        res.status(500).json({ mensagem: "algo deu errado" });
+    }
+
+    return res.status(201).json(livroCriado);
 });
 
 router.delete("/:id", (req, res) => {
-    console.log("delete USERS");
+    const idLivro = parseInt(req.params.id);
+
+    if(isNaN(idLivro)) {
+        res.status(400).json({ mensagem: "identificador deve ser um numero" });
+    }
+
+    let livro = findOne(id);
+    if(!livro) {
+        res.status(404).send();
+    }
+
+    deletarLivro(idLivro);
+    res.sendStatus(204);
 });
 
 router.patch("/:id", (req, res) => {
-    console.log("patch USERS");
+    const id = req.params.id;
+    
+    if(isNaN(id)) {
+        return res
+            .status(400)
+            .json({ mensagem: "identificador precisa ser um numero valido" });
+    }
+
+    let livroAtt = editarLivro(id);
+
+    res.sendStatus(204);
 });
 
 export default router;
